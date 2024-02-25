@@ -174,6 +174,7 @@ class HTTPAuth(Resource):
 
       return JWT
 
+    #return 405 if request does not fulfill requirements
     else:
       return {'message': 'Method Not Allowed'}, 405
 
