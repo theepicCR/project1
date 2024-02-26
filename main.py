@@ -152,16 +152,10 @@ class HTTPAuth(Resource):
       
       return JWT
 
-    #return 405 if request does not fulfill requirements
-    else:
-      return {'message': 'Method Not Allowed'}, 405
-
-  #for returning expired JWTs
-  def get(self):
     #checks if the expiry parameter is present
     #if it is, creates an expired JWT & JWK
     #returns an expired JWT
-    if request.args.get("expired") == "true":
+    elif request.args.get("expired") == "true":
       keyID = GenerateKID()
       private_key, public_key = GenerateRSAkeys()
 
