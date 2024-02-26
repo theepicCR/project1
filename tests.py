@@ -48,21 +48,21 @@ def testAuthPOST():
 
 #testing /auth endpoint with expiry parameter with GET method
 def testAuthExpGET():
-  #checks if status code is 200, if data is JSON decodable,
-  #and if type is application/json
+  #checks if status code is 405
   with app.test_client() as client:
     response = client.get('/auth?expired=true')
-    assert response.status_code == 200
-    assert json.loads(response.data)
-    assert response.mimetype == 'application/json'
+    assert response.status_code == 405
 
 
 #testing /auth endpoint with expiry parameter with POST method
 def testAuthExpPOST():
-  #checks if status code is 405
+  #checks if status code is 200, if data is JSON decodable,
+  #and if type is application/json
   with app.test_client() as client:
     response = client.post('/auth?expired=true')
-    assert response.status_code == 405
+    assert response.status_code == 200
+    assert json.loads(response.data)
+    assert response.mimetype == 'application/json'
 
 
 #calling test functions
