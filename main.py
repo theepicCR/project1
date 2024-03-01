@@ -4,10 +4,8 @@ import jwt
 from jwt import algorithms
 import base64
 
-
 #for JWK generation
 from jwcrypto import jwk
-
 
 #for RSA key pair & JWT generation
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -46,7 +44,6 @@ def GenerateJWK(public_key, keyID, expired):
   else:
     #expires in about a year
     expiration = 1739978287
-
 
   #generate JWK given parameters
   JWkey = jwk.JWK.generate(kty='RSA', size=2048, kid=keyID, n=public_key.public_numbers().n, e=public_key.public_numbers().e, iat=1708355887, exp=expiration)
@@ -98,7 +95,6 @@ def GenerateJWT(private_key, keyID, expired):
 
   #gets rid of the '==' padding
   encoded_signature = encoded_signature.rstrip("=")
-
 
   return encoded_header + "." + encoded_payload + "." + encoded_signature
 
