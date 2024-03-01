@@ -26,6 +26,7 @@ import json
 #-------------------------GLOBAL VARIABLES-------------------------
 #JWKs - expired and unexpired
 keys = {"keys": []}
+JWKids = {}
 expired_keys = {"keys": []}
 
 #---------------------------RSA KEYS SETUP--------------------------
@@ -121,16 +122,14 @@ class HTTPKid(Resource):
   def get(self, kid):
     #checks if kid is in unexpired key collection
     #returns the corresponding JWK
-    for k in keys:
+    for k in JWKids:
       if k == kid:
-        return keys[k]
+        return JWKids[k]
 
       #else kid is in expired key collection
       #returns 405
       else:
-        for k in expired_keys:
-          if k == kid:
-            return {'message': 'Expired Key Not Allowed'}, 405
+        return {'message': 'Key Not Allowed'}, 405
 
 api.add_resource(HTTPKid, "/.well-known/jwks.json/<kid>")
 
@@ -149,6 +148,7 @@ class HTTPAuth(Resource):
 
       #add key to JWK dictionary 'keys'
       keys["keys"].append(JWK.export_public())
+      JWKids[keyID] = JWK.export_public()
 
       return Response(JWT, status=200, mimetype="application/jwt")
 
