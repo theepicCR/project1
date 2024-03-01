@@ -42,8 +42,7 @@ def testAuthPOST():
   with app.test_client() as client:
     response = client.post('/auth')
     assert response.status_code == 200
-    assert json.loads(response.data)
-    assert response.mimetype == 'application/json'
+    assert response.mimetype == 'application/jwt'
 
 
 #testing /auth endpoint with expiry parameter with GET method
@@ -61,8 +60,7 @@ def testAuthExpPOST():
   with app.test_client() as client:
     response = client.post('/auth?expired=true')
     assert response.status_code == 200
-    assert json.loads(response.data)
-    assert response.mimetype == 'application/json'
+    assert response.mimetype == 'application/jwt'
 
 
 #calling test functions
