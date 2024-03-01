@@ -25,8 +25,8 @@ import json
 
 #-------------------------GLOBAL VARIABLES-------------------------
 #JWKs - expired and unexpired
-keys = {}
-expired_keys = {}
+keys = {"keys": []}
+expired_keys = {"keys": []}
 
 #---------------------------RSA KEYS SETUP--------------------------
 def GenerateRSAkeys():
@@ -148,7 +148,7 @@ class HTTPAuth(Resource):
       JWT = GenerateJWT(private_key, keyID, False)
 
       #add key to JWK dictionary 'keys'
-      keys[keyID] = JWK.export_public()
+      keys["keys"].append(JWK.export_public())
 
       return Response(JWT, status=200, mimetype="application/jwt")
 
@@ -164,7 +164,7 @@ class HTTPAuth(Resource):
       JWT = GenerateJWT(private_key, keyID, True)
 
       #add key to expired key collection
-      expired_keys[keyID] = JWK.export_public()
+      expired_keys["keys"].append(JWK.export_public())
 
       return Response(JWT, status=200, mimetype="application/jwt")
 
