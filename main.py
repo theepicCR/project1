@@ -18,7 +18,7 @@ import string
 import random
 
 #for RESTful http server
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Resource, Api
 import json
 
@@ -32,7 +32,7 @@ expired_keys = {}
 def GenerateRSAkeys():
   #generate private and public keys
   private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-  
+
   public_key = private_key.public_key()
 
   return private_key, public_key
@@ -46,7 +46,7 @@ def GenerateJWK(public_key, keyID, expired):
     #expires in about a year
     expiration = 1739978287
 
-  
+
   #generate JWK given parameters
   JWkey = jwk.JWK.generate(kty='RSA', size=2048, kid=keyID, n=public_key.public_numbers().n, e=public_key.public_numbers().e, iat=1708355887, exp=expiration)
 
@@ -67,7 +67,7 @@ def GenerateJWT(private_key, keyID, expired):
   else:
     #expires in about a year
     expiration = 1739978287
-  
+
   #header
   JWTheader = {
     "kid": keyID,
@@ -89,7 +89,7 @@ def GenerateJWT(private_key, keyID, expired):
   #encoding payload
   payload_bytes = json.dumps(JWTpayload).encode("utf-8")
   encoded_payload = base64.urlsafe_b64encode(payload_bytes).decode("utf-8")
-  
+
   #encodes signature part of JWT
   #signs it with private key
   signature = private_key.sign((encoded_header + "." + encoded_payload).encode(), padding.PKCS1v15(), hashes.SHA256())
@@ -97,7 +97,7 @@ def GenerateJWT(private_key, keyID, expired):
 
   #gets rid of the '==' padding
   encoded_signature = encoded_signature.rstrip("=")
-  
+
 
   return encoded_header + "." + encoded_payload + "." + encoded_signature
 
@@ -142,15 +142,15 @@ class HTTPAuth(Resource):
     if request.path == "/auth" and len(request.args) == 0:
       keyID = GenerateKID()
       private_key, public_key = GenerateRSAkeys()
-        
+
       #create unexpired JWT & JWK
       JWK = GenerateJWK(public_key, keyID, False)
       JWT = GenerateJWT(private_key, keyID, False)
-  
+
       #add key to JWK dictionary 'keys'
       keys[keyID] = JWK.export_public()
-      
-      return JWT
+
+      return Response(JWT, status=200, mimetype="application/jwt")
 
     #checks if the expiry parameter is present
     #if it is, creates an expired JWT & JWK
@@ -166,7 +166,7 @@ class HTTPAuth(Resource):
       #add key to expired key collection
       expired_keys[keyID] = JWK.export_public()
 
-      return JWT
+      return Response(JWT, status=200, mimetype="application/jwt")
 
     #return 405 if request does not fulfill requirements
     else:
