@@ -1,11 +1,6 @@
  #---------------------------IMPORT LIBRARIES----------------------------
-#for JWT generation
-import jwt
-from jwt import algorithms
+#for JWT & JWK generation
 import base64
-
-#for JWK generation
-from jwcrypto import jwk
 
 #for RSA key pair & JWT generation
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -45,10 +40,26 @@ def GenerateJWK(public_key, keyID, expired):
     #expires in about a year
     expiration = 1739978287
 
-  #generate JWK given parameters
-  JWkey = jwk.JWK.generate(kty='RSA', size=2048, kid=keyID, n=public_key.public_numbers().n, e=public_key.public_numbers().e, iat=1708355887, exp=expiration)
+  
+  #generate n modulus
+  #public_key -> int -> bytes -> base64 -> string
+  n = public_key.public_numbers().n
+  n_bytes = n.to_bytes((n.bit_length() + 7) // 8, byteorder='big')
+  n_encoded = base64.urlsafe_b64encode(n_bytes).rstrip(b'=').decode('utf-8')
 
-  return JWkey
+
+  #construct the jwk manually :(
+  JWK = {
+    "kid": keyID, 
+    "kty": "RSA", 
+    "e": "AQAB", 
+    "n": n_encoded,
+    "alg": "RS256",
+    "iat": 1708355887,
+    "exp": expiration
+  }
+
+  return JWK
 
 #---------------------------KID SETUP----------------------------
 def GenerateKID():
@@ -95,6 +106,7 @@ def GenerateJWT(private_key, keyID, expired):
 
   #gets rid of the '==' padding
   encoded_signature = encoded_signature.rstrip("=")
+
 
   return encoded_header + "." + encoded_payload + "." + encoded_signature
 
@@ -143,8 +155,8 @@ class HTTPAuth(Resource):
       JWT = GenerateJWT(private_key, keyID, False)
 
       #add key to JWK dictionary 'keys'
-      keys["keys"].append(JWK.export_public())
-      JWKids[keyID] = JWK.export_public()
+      keys["keys"].append(JWK)
+      JWKids[keyID] = JWK
 
       return Response(JWT, status=200, mimetype="application/jwt")
 
@@ -160,7 +172,7 @@ class HTTPAuth(Resource):
       JWT = GenerateJWT(private_key, keyID, True)
 
       #add key to expired key collection
-      expired_keys["keys"].append(JWK.export_public())
+      expired_keys["keys"].append(JWK)
 
       return Response(JWT, status=200, mimetype="application/jwt")
 
