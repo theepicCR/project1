@@ -13,8 +13,8 @@ def testJwksJsonGET():
     response = client.get('/.well-known/jwks.json')
     assert response.status_code == 200
 
-    #make JWK regex to check if it matches in response
-    regex = b'^{.*}\n$'
+    #check if JWK is in proper JWK format & includes a kid
+    regex = b'^{"keys":.*"kid":.*}\n$'
     assert re.match(regex, response.data)
     assert response.mimetype == 'application/json'
 
@@ -64,9 +64,9 @@ def testAuthExpPOST():
 
 
 #calling test functions
-testJwksJsonGET()
-testJwksJsonPOST()
 testAuthGET()
 testAuthPOST()
 testAuthExpGET()
 testAuthExpPOST()
+testJwksJsonGET()
+testJwksJsonPOST()
